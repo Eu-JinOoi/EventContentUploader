@@ -21,9 +21,10 @@ def GetFilesInDirectory(path, fileExtensionFilter=None):
             fileList.append(os.path.join(path,file));
     return fileList
 
+def PrintTimestamp(log):
+    print("["+datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"] - "+ log); 
 
-print("Script starting at " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"));
-
+PrintTimestamp("Starting Flickr Upload Script");
 photoSetUser="BNSF4924"
 photoSetName="Unprocessed Images"
 
@@ -36,17 +37,18 @@ pendingImages=GetFilesInDirectory("images", "jpg")
 if pendingImages is not None and len(pendingImages) !=0 :
     for pendingImage in pendingImages:
         print("=================================")
-        print("Processing Image: "+ pendingImage);
+        PrintTimestamp("Processing Image: "+ pendingImage);
+
         uploadedPhoto=flickr_api.upload(photo_file=pendingImage ,title=x.strftime("%c"),hidden=1,is_public=0, tags='unprocessed WSJ2019 "TEST Multiword"');
         photoId = uploadedPhoto.id
-        print("Uploaded " + pendingImage + " to Flickr with ID "+ photoId);
+        PrintTimestamp("Uploaded " + pendingImage + " to Flickr with ID "+ photoId);
         unprocessedPhotoset=GetPhotoSetWithName(photoSetUser, photoSetName)
         unprocessedPhotoset.addPhoto(photo_id=photoId);
-        print("Removing "+ pendingImage);
+        PrintTimestamp("Removing "+ pendingImage);
         os.remove(pendingImage);
-        print("Removed "+ pendingImage);
+        PrintTimestamp("Removed "+ pendingImage);
         print("=================================")
-    print("All images processed at " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    PrintTimestamp("All images processed.")
 else:
-    print ("There are no images to upload. Finished at "+ datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    PrintTimestamp("There are no images to upload.")
 
