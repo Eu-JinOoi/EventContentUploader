@@ -32,6 +32,7 @@ PrintTimestamp("Starting Flickr Upload Script");
 photoSetUser="BNSF4924"
 #photoSetName="Unprocessed Images"
 photoSetName="Test New Photoset 1";
+processDelimiterString="================================="
 
 PrintTimestamp("Loading configuration from file.")
 config = ConfigParser.ConfigParser()
@@ -42,30 +43,35 @@ authFile="flickr_auth.txt"
 configSectionFlickr="Flickr"
 flickr_api.set_keys(api_key = config.get(configSectionFlickr,"ApiKey"), api_secret = config.get(configSectionFlickr,"ApiSecret"))
 flickr_api.set_auth_handler(authFile)
+unprocessedPhotoSet=None
 
 pendingImages=GetFilesInDirectory("images", "jpg")
 if pendingImages is not None and len(pendingImages) !=0 :
     for pendingImage in pendingImages:
-        print("=================================")
+        print(processDelimiterString)
         PrintTimestamp("Processing Image: "+ pendingImage);
 
-        uploadedPhoto=flickr_api.upload(photo_file=pendingImage ,title=datetime.datetime.now().strftime("%c"),hidden=1,is_public=0, tags='unprocessed WSJ2019 "TEST Multiword"');
+        uploadedPhoto=flickr_api.upload(photo_file=pendingImage ,title=datetime.datetime.now().strftime("%c"),hidden=1,is_public=0, tags='unprocessed WSJ2019 "World Scout Jamboree" "World Scout Jamboree 2019" "ScoutJamboree"');
         photoId = uploadedPhoto.id
         PrintTimestamp("Uploaded '" + pendingImage + "' to Flickr with ID "+ photoId);
-        unprocessedPhotoSet=None
-        try:
-            unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
-        except:
-            PrintTimestamp("The photoset '" + photoSetName + "' does not exist. Attempting to create.")
-            unprocessedPhotoSet = CreatePhotoSetWithName(photoSetName, photoId);
-            unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
         if unprocessedPhotoSet is None:
-            raise Exception("Unable to create the photoset "+photoSetName);
-        unprocessedPhotoSet.addPhoto(photo_id=photoId);
+            try:
+                unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
+            except:
+                PrintTimestamp("The photoset '" + photoSetName + "' does not exist. Attempting to create.")
+                unprocessedPhotoSet = CreatePhotoSetWithName(photoSetName, photoId);
+                unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
+            if unprocessedPhotoSet is None:
+                raise Exception("Unable to create the photoset "+photoSetName);
+        try:
+            PrintTimestamp("Added photo " + photoId + " to the photoset " + photoSetName + "."); 
+            unprocessedPhotoSet.addPhoto(photo_id=photoId);
+        except:
+            PrintTimestamp("Adding photo " + photoId + " to the photoset " + photoSetName + " has failed."); 
         PrintTimestamp("Removing "+ pendingImage);
         os.remove(pendingImage);
         PrintTimestamp("Removed "+ pendingImage);
-        print("=================================")
+        print(processDelimiterString)
     PrintTimestamp("All images processed.")
 else:
     PrintTimestamp("There are no images to upload.")
