@@ -21,7 +21,7 @@ def GetFilesInDirectory(path, fileExtensionFilter=None):
         fileList = []
 
         for fileInPath in os.listdir(path):
-            if fileExtensionFilter is None or fileInPath.endswith(fileExtensionFilter):
+            if fileExtensionFilter is None or fileInPath.lower().endswith(fileExtensionFilter):
                 fileList.append(os.path.join(path, fileInPath))
         return fileList
     except:
@@ -48,8 +48,8 @@ def upload_image_to_flickr(image_to_upload):
 
     uploaded_photo = flickr_api.upload(photo_file=image_to_upload,
                                        title=datetime.datetime.now().strftime("%c"),
-                                       hidden=1,
-                                       is_public=0,
+                                       hidden=0,
+                                       is_public=1,
                                        tags='unprocessed WSJ2019 "World Scout Jamboree" "World Scout Jamboree 2019" "ScoutJamboree" "2019 WSJ" "Summit Bechtel Reserve" "24WSJ" "24th World Scout Jamboree"')
     photo_id = uploaded_photo.id
     PrintTimestamp("Uploaded '" + image_to_upload + "' to Flickr with ID " + photo_id)
@@ -58,7 +58,7 @@ def upload_image_to_flickr(image_to_upload):
 
 PrintTimestamp("Starting Flickr Upload Script")
 # photoSetName="Unprocessed Images"
-photoSetName = "24th World Scout Jamboree (Unprocessed)"
+photoSetName = "24th World Scout Jamboree"
 processDelimiterString = "================================="
 
 PrintTimestamp("Loading configuration from file.")
@@ -73,29 +73,33 @@ flickr_api.set_auth_handler(authFile)
 photoSetUser = config.get(configSectionFlickr, "UserName")
 unprocessedPhotoSet = None
 
-pendingImages = GetFilesInDirectory("images", "jpg")
+pendingImages = GetFilesInDirectory("/media/sda1/photos/", "jpg")
 if pendingImages is not None and len(pendingImages) != 0:
     for pendingImage in pendingImages:
-        print(processDelimiterString)
-        PrintTimestamp("Processing Image: " + pendingImage)
-        photoId = upload_image_to_flickr(pendingImage)
-
-        if unprocessedPhotoSet is None:
-            try:
-                unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
-            except:
-                PrintTimestamp("The photoset '" + photoSetName + "' does not exist. Attempting to create.")
-                unprocessedPhotoSet = CreatePhotoSetWithName(photoSetName, photoId)
-                unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
-            if unprocessedPhotoSet is None:
-                raise Exception("Unable to create the photoset " + photoSetName)
         try:
-            PrintTimestamp("Added photo " + photoId + " to the photoset " + photoSetName + ".")
-            unprocessedPhotoSet.addPhoto(photo_id=photoId)
-        except:
-            PrintTimestamp("Adding photo " + photoId + " to the photoset " + photoSetName + " has failed.")
-        remove_file(pendingImage)
-        print(processDelimiterString)
+            print(processDelimiterString)
+            PrintTimestamp("Processing Image: " + pendingImage)
+            photoId = upload_image_to_flickr(pendingImage)
+
+            if unprocessedPhotoSet is None:
+                try:
+                    unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
+                except:
+                    PrintTimestamp("The photoset '" + photoSetName + "' does not exist. Attempting to create.")
+                    unprocessedPhotoSet = CreatePhotoSetWithName(photoSetName, photoId)
+                    unprocessedPhotoSet = GetPhotoSetWithName(photoSetUser, photoSetName)
+                if unprocessedPhotoSet is None:
+                    raise Exception("Unable to create the photoset " + photoSetName)
+            try:
+                PrintTimestamp("Added photo " + photoId + " to the photoset " + photoSetName + ".")
+                unprocessedPhotoSet.addPhoto(photo_id=photoId)
+            except:
+                PrintTimestamp("Adding photo " + photoId + " to the photoset " + photoSetName + " has failed.")
+            remove_file(pendingImage)
+            print(processDelimiterString)
+        except Exception as e:
+            PrintTimestamp("An error occured while uploading "+pendingImage+".");
+
     PrintTimestamp("All images processed.")
 else:
     PrintTimestamp("There are no images to upload.")
