@@ -98,7 +98,7 @@ if pendingImages is not None and len(pendingImages) != 0:
             remove_file(pendingImage)
             print(processDelimiterString)
         except Exception as e:
-            PrintTimestamp("An error occured while uploading "+pendingImage+".");
+            PrintTimestamp("An error occured while uploading "+pendingImage+".")
 
     PrintTimestamp("All images processed.")
 else:
