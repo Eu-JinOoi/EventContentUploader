@@ -50,7 +50,7 @@ def upload_image_to_flickr(image_to_upload):
                                        title=datetime.datetime.now().strftime("%c"),
                                        hidden=0,
                                        is_public=1,
-                                       tags='unprocessed WSJ2019 "World Scout Jamboree" "World Scout Jamboree 2019" "ScoutJamboree" "2019 WSJ" "Summit Bechtel Reserve" "24WSJ" "24th World Scout Jamboree"')
+                                       tags='unprocessed NSJ2023 "National Scout Jamboree" "Natitonal Scout Jamboree 2023" "ScoutJamboree" "2023 NSJ" "Summit Bechtel Reserve" "23rd National Scout Jamboree"')
     photo_id = uploaded_photo.id
     PrintTimestamp("Uploaded '" + image_to_upload + "' to Flickr with ID " + photo_id)
     return photo_id
@@ -58,7 +58,7 @@ def upload_image_to_flickr(image_to_upload):
 
 PrintTimestamp("Starting Flickr Upload Script")
 # photoSetName="Unprocessed Images"
-photoSetName = "24th World Scout Jamboree"
+photoSetName = "2023 National Scout Jamboree"
 processDelimiterString = "================================="
 
 PrintTimestamp("Loading configuration from file.")
